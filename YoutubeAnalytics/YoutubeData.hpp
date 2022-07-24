@@ -24,8 +24,9 @@ public:
 
 	}
 
-	bool outputData(const char* fileName, char s1[][BUFFSIZE], int d1[], int d2[], int d3[], char s2[][BUFFSIZE], int cnt)
+	bool outputData(const char* fileName, char s1[][BUFFSIZE], char s2[][BUFFSIZE], char s3[][BUFFSIZE], char s4[][BUFFSIZE], char s5[][BUFFSIZE], char s6[][BUFFSIZE], int cnt)
 	{
+
 		int i = 0;
 		FILE* fp;
 		errno_t error;
@@ -35,7 +36,7 @@ public:
 		else {
 			fprintf(fp, "title,viewCount,likeCount,commentCount,publishedAt\n");
 			for (i = 0; i < cnt; i++) {
-				fprintf(fp, "%s,%d,%d,%d,%s\n", s1[i], d1[i], d2[i], d3[i], s2[i]);
+				fprintf(fp, "%s,%s,%s,%s,%s,%s\n", s1[i], s2[i], s3[i], s4[i], s5[i], s6[i]);
 			}
 			fclose(fp);
 		}
