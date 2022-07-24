@@ -1,7 +1,7 @@
 ﻿#pragma once
 #define BUFFSIZE 2048
 
-struct VideoItem
+struct VideoItem //動画情報の構造体
 {
 	String title;
 	String publishedAt;
@@ -14,7 +14,7 @@ struct VideoItem
 class YoutubeData
 {
 public:
-	YoutubeData(const String& channelID, const String& apiKey)
+	YoutubeData(const String& channelID, const String& apiKey) //コンストラクタ
 		: m_channelId(channelID), m_apikey(apiKey)
 	{
 
@@ -24,51 +24,28 @@ public:
 
 	}
 
-	bool outputData(const char* fileName, char s1[][BUFFSIZE], char s2[][BUFFSIZE], char s3[][BUFFSIZE], char s4[][BUFFSIZE], char s5[][BUFFSIZE], char s6[][BUFFSIZE], int cnt)
+	bool outputData(const char* fileName, Array<VideoItem>& items) //出力用メソッド
 	{
-
 		int i = 0;
 		FILE* fp;
 		errno_t error;
 		error = fopen_s(&fp, fileName, "w");
-		if (error != 0)
+		if (error != 0) {
 			fprintf_s(stderr, "failed to open");
+			return false;
+		}
 		else {
-			fprintf(fp, "title,viewCount,likeCount,commentCount,publishedAt\n");
-			for (i = 0; i < cnt; i++) {
-				fprintf(fp, "%s,%s,%s,%s,%s,%s\n", s1[i], s2[i], s3[i], s4[i], s5[i], s6[i]);
+			fprintf(fp, "title,publishedAt,viewCount,likeCount,commentCount,description\n");
+			for (i = 0; i < items.size(); i++) {
+				fprintf(fp, "%s,%s,%s,%s,%s,%s\n", items[i].title.narrow().c_str(), items[i].publishedAt.narrow().c_str(), items[i].viewCount.narrow().c_str(), items[i].likeCount.narrow().c_str(), items[i].commentCount.narrow().c_str(), items[i].description.narrow().c_str());
 			}
 			fclose(fp);
-		}
-	}
-
-	bool getYoutubeData()
-	{
-		const URL url = U"https://www.googleapis.com/youtube/v3/search?part=id&channelId=" + m_channelId + U"&key=" + m_apikey;
-		const HashTable<String, String> headers = { { U"Content-Type", U"application/json" } };
-
-		String result;
-		if (HTTPGet(url, headers, result))
-		{
-			JSON json = JSON::Parse(result);
-
-			m_videoId = json[U"items"][0][U"id"][U"videoId"].getString();
-
-
 			return true;
-		}
-		else
-		{
-			return false;
 		}
 	}
 
 	bool getNewItems(Array<VideoItem>& items)
 	{
-		if (m_videoId.empty())
-		{
-			return false;
-		}
 
 		URL url = U"https://www.googleapis.com/youtube/v3/search?part=id&channelId=" + m_channelId + U"&key=" + m_apikey;
 		const HashTable<String, String> headers = { { U"Content-Type", U"application/json" } };
@@ -79,6 +56,17 @@ public:
 		}
 
 		String result;
+		if (HTTPGet(url, headers, result))
+		{
+			JSON json = JSON::Parse(result);
+
+			URL url2 = U"https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=" + m_videoId + U"&key=" + m_apikey;
+			m_videoId = json[U"items"][0][U"id"][U"videoId"].getString();
+
+
+			return true;
+		}
+
 		if (HTTPGet(url, headers, result))
 		{
 			JSON json = JSON::Parse(result);
