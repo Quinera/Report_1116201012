@@ -3,12 +3,12 @@
 
 struct VideoItem //動画情報の構造体
 {
-	String title;
-	String publishedAt;
-	String viewCount;
-	String likeCount;
-	String commentCount;
-	String description;
+	String title;	//タイトル
+	String publishedAt; //投稿日時
+	String viewCount;	//視聴回数
+	String likeCount;	//高評価数
+	String commentCount;	//コメント数
+	String description;	//動画説明文
 };
 
 class YoutubeData
@@ -29,7 +29,7 @@ public:
 		int i = 0;
 		FILE* fp;
 		errno_t error;
-		error = fopen_s(&fp, fileName, "w");
+		error = fopen_s(&fp, fileName, "w");	//ファイルオープン
 		if (error != 0) {
 			fprintf_s(stderr, "failed to open");
 			return false;
@@ -48,7 +48,6 @@ public:
 	{
 
 		URL url = U"https://www.googleapis.com/youtube/v3/search?part=id&type=video&channelId=" + m_channelId + U"&key=" + m_apikey;
-		URL url2 = U"https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&key=" + m_apikey;
 		const HashTable<String, String> headers = { { U"Content-Type", U"application/json" } };
 
 		if (!m_nextPageToken.empty())
@@ -58,34 +57,34 @@ public:
 
 		String result;
 		Print << url;
-		if (HTTPGet(url, headers, result))
+		if (HTTPGet(url, headers, result))	//チャンネルのvideoID一覧を取得
 		{
 			JSON json = JSON::Parse(result);
-			//if (!json[U"nextPageToken"].isEmpty()) m_nextPageToken = json[U"nextPageToken"].getString();
+			if (!json[U"nextPageToken"].isEmpty()) m_nextPageToken = json[U"nextPageToken"].getString();
 			Array<VideoItem> res;
 
-			for (const auto& object : json[U"items"].arrayView()) {
+			for (const auto& object : json[U"items"].arrayView()) {	//取得した動画数分
 
-				m_videoId = object[U"id"][U"videoId"].getString();
+				m_videoId = object[U"id"][U"videoId"].getString();		//videoIdを取得
+				URL url2 = U"https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&key=" + m_apikey;
 				url2 += U"&id=" + m_videoId;
-				Print << m_videoId;
+				//Print << m_videoId;
 
-				if (HTTPGet(url2, headers, result))
+				if (HTTPGet(url2, headers, result))	//動画情報を取得
 				{
 					JSON json2 = JSON::Parse(result);
 
 					VideoItem item;
-					item.title = json2[U"items"][U"snippet"][U"title"].getString();
-					item.publishedAt = json2[U"items"][U"snippet"][U"publishedAt"].getString();
-					item.viewCount = json2[U"items"][U"statisitcs"][U"viewCount"].getString();
-					item.likeCount = json2[U"items"][U"statisitcs"][U"likeCount"].getString();
-					item.commentCount = json2[U"items"][U"statisitcs"][U"commentCount"].getString();
-					item.description = json2[U"items"][U"snippet"][U"description"].getString();
-					res << item;
+					item.title = json2[U"items"][0][U"snippet"][U"title"].getString();
+					item.publishedAt = json2[U"items"][0][U"snippet"][U"publishedAt"].getString();
+					item.viewCount = json2[U"items"][0][U"statistics"][U"viewCount"].getString();
+					item.likeCount = json2[U"items"][0][U"statistics"][U"likeCount"].getString();
+					item.commentCount = json2[U"items"][0][U"statistics"][U"commentCount"].getString();
+					item.description = json2[U"items"][0][U"snippet"][U"description"].getString();
+					res << item;		//動的配列にプッシュ
 				}
 			}
-			items = res;
-			Print << res[0].title;
+			items = res;	//引数に結果を反映する
 			return true;
 		}
 		else
@@ -97,22 +96,22 @@ public:
 
 private:
 
-	bool HTTPGet(const URL& url, const HashTable<String, String>& headers, String& result)
+	bool HTTPGet(const URL& url, const HashTable<String, String>& headers, String& result) //APIへのHTTPリクエスト
 	{
 
-		MemoryWriter writer;
+		MemoryWriter writer;	//バイナリデータ保存用
 
-		if (auto response = SimpleHTTP::Get(url, headers, writer))
+		if (auto response = SimpleHTTP::Get(url, headers, writer))	//API結果をjson形式でwriterに保存
 		{
 			if (response.isOK())
 			{
-				auto res = writer.getBlob().asArray();
-				std::string s;
-				for (auto elem : res)
+				auto res = writer.getBlob().asArray();	//結果を文字列データに変換
+				std::string s;	//
+				for (auto elem : res)		//resの行数分繰り返し
 				{
-					s += (char)elem;
+					s += (char)elem;	//一行ごとにstd::string変数へ保存
 				}
-				result = Unicode::FromUTF8(s);
+				result = Unicode::FromUTF8(s);		//結果をUTF8からStringへ変換
 				return true;
 			}
 		}
