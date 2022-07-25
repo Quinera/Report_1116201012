@@ -2,7 +2,7 @@
 #include <windows.h>
 # include "YouTubeData.hpp"
 # define BUFFSIZE 2048
-# define API_KEY U"AIzaSyDQjz4TL0FPXUshaMWFXMRFOgGALVhURTw"  // 取得した API キー
+# define API_KEY U"AIzaSyDwlanlD9Htug4vdVmChNmMqBz3tLAjLUA"  // 取得した API キー
 
 void Main()
 {

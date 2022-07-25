@@ -8,7 +8,6 @@ struct VideoItem //動画情報の構造体
 	String viewCount;	//視聴回数
 	String likeCount;	//高評価数
 	String commentCount;	//コメント数
-	String description;	//動画説明文
 };
 
 class YoutubeData
@@ -35,9 +34,9 @@ public:
 			return false;
 		}
 		else {
-			fprintf(fp, "title,publishedAt,viewCount,likeCount,commentCount,description\n");
+			fprintf(fp, "title,publishedAt,viewCount,likeCount,commentCount\n");
 			for (i = 0; i < items.size(); i++) {
-				fprintf(fp, "%s,%s,%s,%s,%s,%s\n", items[i].title.narrow().c_str(), items[i].publishedAt.narrow().c_str(), items[i].viewCount.narrow().c_str(), items[i].likeCount.narrow().c_str(), items[i].commentCount.narrow().c_str(), items[i].description.narrow().c_str());
+				fprintf(fp, "%s,%s,%s,%s,%s\n", items[i].title.narrow().c_str(), items[i].publishedAt.narrow().c_str(), items[i].viewCount.narrow().c_str(), items[i].likeCount.narrow().c_str(), items[i].commentCount.narrow().c_str());
 			}
 			fclose(fp);
 			return true;
@@ -47,51 +46,55 @@ public:
 	bool getNewItems(Array<VideoItem>& items)
 	{
 
-		URL url = U"https://www.googleapis.com/youtube/v3/search?part=id&type=video&channelId=" + m_channelId + U"&key=" + m_apikey;
 		const HashTable<String, String> headers = { { U"Content-Type", U"application/json" } };
-
-		if (!m_nextPageToken.empty())
-		{
-			url += U"&pageToken=" + m_nextPageToken;
-		}
-
+		Array<VideoItem> res;
 		String result;
-		Print << url;
-		if (HTTPGet(url, headers, result))	//チャンネルのvideoID一覧を取得
-		{
-			JSON json = JSON::Parse(result);
-			if (!json[U"nextPageToken"].isEmpty()) m_nextPageToken = json[U"nextPageToken"].getString();
-			Array<VideoItem> res;
+		bool fin = false;
 
-			for (const auto& object : json[U"items"].arrayView()) {	//取得した動画数分
-
-				m_videoId = object[U"id"][U"videoId"].getString();		//videoIdを取得
-				URL url2 = U"https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&key=" + m_apikey;
-				url2 += U"&id=" + m_videoId;
-				//Print << m_videoId;
-
-				if (HTTPGet(url2, headers, result))	//動画情報を取得
+		do {
+			URL url = U"https://www.googleapis.com/youtube/v3/search?part=id&maxResults=50&type=video&channelId=" + m_channelId + U"&key=" + m_apikey;
+			if (!m_nextPageToken.empty())
+			{
+				url += U"&pageToken=" + m_nextPageToken;
+			}
+			if (HTTPGet(url, headers, result))	//チャンネルのvideoID一覧を取得
+			{
+				JSON json = JSON::Parse(result);
+				if (json[U"items"].size() == 50)
 				{
-					JSON json2 = JSON::Parse(result);
+					m_nextPageToken = json[U"nextPageToken"].getString();
+				}
+				else {
+					fin = true;
+				}
 
-					VideoItem item;
-					item.title = json2[U"items"][0][U"snippet"][U"title"].getString();
-					item.publishedAt = json2[U"items"][0][U"snippet"][U"publishedAt"].getString();
-					item.viewCount = json2[U"items"][0][U"statistics"][U"viewCount"].getString();
-					item.likeCount = json2[U"items"][0][U"statistics"][U"likeCount"].getString();
-					item.commentCount = json2[U"items"][0][U"statistics"][U"commentCount"].getString();
-					item.description = json2[U"items"][0][U"snippet"][U"description"].getString();
-					res << item;		//動的配列にプッシュ
+				for (const auto& object : json[U"items"].arrayView()) {	//取得した動画数分
+
+					m_videoId = object[U"id"][U"videoId"].getString();		//videoIdを取得
+					URL url2 = U"https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&maxResults=50&key=" + m_apikey;
+					url2 += U"&id=" + m_videoId;
+
+					if (HTTPGet(url2, headers, result))	//動画情報を取得
+					{
+						JSON json2 = JSON::Parse(result);
+
+						VideoItem item;
+						item.title = json2[U"items"][0][U"snippet"][U"title"].getString();
+						item.publishedAt = json2[U"items"][0][U"snippet"][U"publishedAt"].getString();
+						item.viewCount = json2[U"items"][0][U"statistics"][U"viewCount"].getString();
+						item.likeCount = json2[U"items"][0][U"statistics"][U"likeCount"].getString();
+						item.commentCount = json2[U"items"][0][U"statistics"][U"commentCount"].getString();
+						res << item;		//動的配列にプッシュ
+					}
 				}
 			}
-			items = res;	//引数に結果を反映する
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-
+			else
+			{
+				return false;
+			}
+		} while (!fin);
+		items = res;	//引数に結果を反映する
+		return true;
 	}
 
 private:
