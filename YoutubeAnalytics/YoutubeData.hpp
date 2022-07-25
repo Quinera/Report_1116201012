@@ -47,7 +47,7 @@ public:
 	bool getNewItems(Array<VideoItem>& items)
 	{
 
-		URL url = U"https://www.googleapis.com/youtube/v3/search?part=id&channelId=" + m_channelId + U"&key=" + m_apikey;
+		URL url = U"https://www.googleapis.com/youtube/v3/search?part=id&type=video&channelId=" + m_channelId + U"&key=" + m_apikey;
 		URL url2 = U"https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&key=" + m_apikey;
 		const HashTable<String, String> headers = { { U"Content-Type", U"application/json" } };
 
@@ -57,19 +57,20 @@ public:
 		}
 
 		String result;
+		Print << url;
 		if (HTTPGet(url, headers, result))
 		{
 			JSON json = JSON::Parse(result);
-			m_nextPageToken = json[U"nextPageToken"].getString();
+			//if (!json[U"nextPageToken"].isEmpty()) m_nextPageToken = json[U"nextPageToken"].getString();
 			Array<VideoItem> res;
 
 			for (const auto& object : json[U"items"].arrayView()) {
 
 				m_videoId = object[U"id"][U"videoId"].getString();
-				url += U"&id=" + m_videoId;
+				url2 += U"&id=" + m_videoId;
 				Print << m_videoId;
 
-				if (HTTPGet(url, headers, result))
+				if (HTTPGet(url2, headers, result))
 				{
 					JSON json2 = JSON::Parse(result);
 
