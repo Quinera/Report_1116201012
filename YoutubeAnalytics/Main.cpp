@@ -14,7 +14,12 @@ void Main()
 
 	Array<VideoItem> items;	//動画情報保存用配列
 	ytdata.getNewItems(items); //動画情報取得
-	ytdata.outputData("OutputData.csv", items); //動画情報出力
+	if (ytdata.outputData("OutputData.csv", items)) //動画情報出力
+	{
+		Print << U"ファイル出力に成功しました。";
+		Print << U"対象のチャンネルID:" << CHANNEL_ID;
+		Print << U"終了するにはEscキーを押すか、ウィンドウを閉じてください...";
+	}
 
 	while (System::Update())
 	{

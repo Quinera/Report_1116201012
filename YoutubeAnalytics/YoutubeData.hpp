@@ -48,6 +48,7 @@ public:
 	{
 
 		URL url = U"https://www.googleapis.com/youtube/v3/search?part=id&channelId=" + m_channelId + U"&key=" + m_apikey;
+		URL url2 = U"https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&key=" + m_apikey;
 		const HashTable<String, String> headers = { { U"Content-Type", U"application/json" } };
 
 		if (!m_nextPageToken.empty())
@@ -59,35 +60,31 @@ public:
 		if (HTTPGet(url, headers, result))
 		{
 			JSON json = JSON::Parse(result);
-
-			URL url2 = U"https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=" + m_videoId + U"&key=" + m_apikey;
-			m_videoId = json[U"items"][0][U"id"][U"videoId"].getString();
-
-
-			return true;
-		}
-
-		if (HTTPGet(url, headers, result))
-		{
-			JSON json = JSON::Parse(result);
-
 			m_nextPageToken = json[U"nextPageToken"].getString();
-
 			Array<VideoItem> res;
-			for (const auto& object : json[U"items"].arrayView())
-			{
-				VideoItem item;
-				item.title = object[U"items"][U"snippet"][U"title"].getString();
-				item.publishedAt = object[U"items"][U"snippet"][U"publishedAt"].getString();
-				item.viewCount = object[U"items"][U"statisitcs"][U"viewCount"].getString();
-				item.likeCount = object[U"items"][U"statisitcs"][U"likeCount"].getString();
-				item.commentCount = object[U"items"][U"statisitcs"][U"commentCount"].getString();
-				item.description = object[U"items"][U"snippet"][U"description"].getString();
-				res << item;
+
+			for (const auto& object : json[U"items"].arrayView()) {
+
+				m_videoId = object[U"id"][U"videoId"].getString();
+				url += U"&id=" + m_videoId;
+				Print << m_videoId;
+
+				if (HTTPGet(url, headers, result))
+				{
+					JSON json2 = JSON::Parse(result);
+
+					VideoItem item;
+					item.title = json2[U"items"][U"snippet"][U"title"].getString();
+					item.publishedAt = json2[U"items"][U"snippet"][U"publishedAt"].getString();
+					item.viewCount = json2[U"items"][U"statisitcs"][U"viewCount"].getString();
+					item.likeCount = json2[U"items"][U"statisitcs"][U"likeCount"].getString();
+					item.commentCount = json2[U"items"][U"statisitcs"][U"commentCount"].getString();
+					item.description = json2[U"items"][U"snippet"][U"description"].getString();
+					res << item;
+				}
 			}
-
 			items = res;
-
+			Print << res[0].title;
 			return true;
 		}
 		else
