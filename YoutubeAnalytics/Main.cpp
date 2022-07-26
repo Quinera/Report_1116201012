@@ -2,12 +2,10 @@
 #include <windows.h>
 # include "YouTubeData.hpp"
 # define BUFFSIZE 2048
-//# define API_KEY U"AIzaSyDwlanlD9Htug4vdVmChNmMqBz3tLAjLUA"  // 取得した API キー
 
 void Main()
 {
 	char chStr[BUFFSIZE], apStr[BUFFSIZE];
-	//DWORD dwLen = 0;
 	GetPrivateProfileStringA("Data", "ChannelID", "0", chStr, BUFFSIZE - 1, ".\\Setting.ini");		//ChannelIDをchar変数に代入
 	GetPrivateProfileStringA("Data", "API_KEY", "0", apStr, BUFFSIZE - 1, ".\\Setting.ini");		//API_KEYをchar変数に代入
 	String CHANNEL_ID = Unicode::Widen(chStr);	 //SivのStringに変換

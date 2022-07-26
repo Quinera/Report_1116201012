@@ -59,6 +59,7 @@ public:
 			if (HTTPGet(url, headers, result))	//チャンネルのvideoID一覧を取得
 			{
 				JSON json = JSON::Parse(result);	//結果をjson型に格納
+
 				totalresult = json[U"pageInfo"][U"totalResults"].get<int32>();
 				if (cnt * 50 < totalresult)	//結果が次ページに跨がる場合
 				{
@@ -125,7 +126,6 @@ private:
 			Print << U"動画情報の取得に失敗しました。";
 			return false;
 		}
-
 		return false;
 	}
 
