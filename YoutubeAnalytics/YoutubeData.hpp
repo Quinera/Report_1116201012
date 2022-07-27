@@ -42,8 +42,8 @@ public:
 	{
 
 		const HashTable<String, String> headers = { { U"Content-Type", U"application/json" } };
-		Array<VideoItem> res;
-		String result;
+		Array<VideoItem> res;	//結果保存用動的配列
+		String result;	//HTTPのレスポンス保存用
 		bool fin = false;	//終了判定
 		int32 totalresult = 0;	//全動画件数
 		int32 cnt = 1;	//ループカウント用
@@ -52,7 +52,7 @@ public:
 			//URL(videoID取得用)
 			URL url = U"https://www.googleapis.com/youtube/v3/search?part=id&maxResults=50&type=video&channelId=" + m_channelId + U"&key=" + m_apikey;
 
-			if (!m_nextPageToken.empty())
+			if (!m_nextPageToken.empty())		//nextPageTokenを指定
 			{
 				url += U"&pageToken=" + m_nextPageToken;
 			}
@@ -60,10 +60,10 @@ public:
 			{
 				JSON json = JSON::Parse(result);	//結果をjson型に格納
 
-				totalresult = json[U"pageInfo"][U"totalResults"].get<int32>();
+				totalresult = json[U"pageInfo"][U"totalResults"].get<int32>();	//videoの総件数を取得
 				if (cnt * 50 < totalresult)	//結果が次ページに跨がる場合
 				{
-					m_nextPageToken = json[U"nextPageToken"].getString();
+					m_nextPageToken = json[U"nextPageToken"].getString();	//nextPageTokenを取得
 				}
 				else {
 					fin = true;		//終了
@@ -81,6 +81,7 @@ public:
 						JSON json2 = JSON::Parse(result);		//結果をjson型に格納
 
 						VideoItem item;
+						//動画の情報を取得
 						item.title = json2[U"items"][0][U"snippet"][U"title"].getString();
 						item.publishedAt = json2[U"items"][0][U"snippet"][U"publishedAt"].getString();
 						item.viewCount = json2[U"items"][0][U"statistics"][U"viewCount"].getString();
@@ -95,6 +96,8 @@ public:
 				return false;
 			}
 			cnt++;
+			Print << U"動画情報取得中... 現在" << res.size() << U"件";
+			System::Update();
 		} while (!fin);	//終了判定
 		items = res;	//引数に結果を反映する
 		return true;
@@ -107,15 +110,15 @@ private:
 
 		MemoryWriter writer;	//バイナリデータ保存用
 
-		if (auto response = SimpleHTTP::Get(url, headers, writer))	//API結果をjson形式でwriterに保存
+		if (auto response = SimpleHTTP::Get(url, headers, writer))	//API結果をwriterに保存
 		{
 			if (response.isOK())
 			{
-				auto res = writer.getBlob().asArray();	//結果を文字列データに変換
+				auto res = writer.getBlob().asArray();	//結果を配列データに変換
 				std::string s;	//
 				for (auto elem : res)		//resの行数分繰り返し
 				{
-					s += (char)elem;	//一行ごとにstd::string変数へ保存
+					s += (char)elem;	//一行ごとにchar型に変換しstd::string変数へ保存
 				}
 				result = Unicode::FromUTF8(s);		//結果をUTF8からStringへ変換
 				return true;
