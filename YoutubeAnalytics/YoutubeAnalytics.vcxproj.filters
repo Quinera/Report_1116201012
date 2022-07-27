@@ -732,7 +732,7 @@
     <None Include="App\engine\font\min\siv3d-min.woff">
       <Filter>Resource Files\engine\font\min</Filter>
     </None>
-    <None Include="Setting.ini">
+    <None Include="App\Setting.ini">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

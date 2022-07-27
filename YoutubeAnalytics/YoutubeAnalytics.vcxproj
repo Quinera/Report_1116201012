@@ -294,7 +294,7 @@
     <None Include="App\example\toml\config.toml" />
     <None Include="App\example\toml\test.toml" />
     <None Include="App\example\zip\zip_test.zip" />
-    <None Include="Setting.ini" />
+    <None Include="App\Setting.ini" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="App\example\shot.mp3" />

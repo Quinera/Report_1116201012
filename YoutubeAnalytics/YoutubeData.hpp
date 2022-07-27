@@ -82,11 +82,11 @@ public:
 
 						VideoItem item;
 						//動画の情報を取得
-						item.title = json2[U"items"][0][U"snippet"][U"title"].getString();
-						item.publishedAt = json2[U"items"][0][U"snippet"][U"publishedAt"].getString();
-						item.viewCount = json2[U"items"][0][U"statistics"][U"viewCount"].getString();
-						item.likeCount = json2[U"items"][0][U"statistics"][U"likeCount"].getString();
-						item.commentCount = json2[U"items"][0][U"statistics"][U"commentCount"].getString();
+						if (json2[U"items"][0][U"snippet"].hasElement(U"title")) item.title = json2[U"items"][0][U"snippet"][U"title"].getString();
+						if (json2[U"items"][0][U"snippet"].hasElement(U"publishedAt")) item.publishedAt = json2[U"items"][0][U"snippet"][U"publishedAt"].getString();
+						if (json2[U"items"][0][U"statistics"].hasElement(U"viewCount")) item.viewCount = json2[U"items"][0][U"statistics"][U"viewCount"].getString();
+						if (json2[U"items"][0][U"statistics"].hasElement(U"likeCount")) item.likeCount = json2[U"items"][0][U"statistics"][U"likeCount"].getString();
+						if (json2[U"items"][0][U"statistics"].hasElement(U"commentCount")) item.commentCount = json2[U"items"][0][U"statistics"][U"commentCount"].getString();
 						res << item;		//動的配列にプッシュ
 					}
 				}
